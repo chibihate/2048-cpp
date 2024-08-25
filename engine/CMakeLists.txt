@@ -20,4 +20,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(${PROJECT_NAME} PUBLIC spdlog glfw)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/external/bin/windows)
+    target_link_libraries(${PROJECT_NAME} PUBLIC spdlogd glfw)
+endif()
+
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/external/include/glad/gl.h)
