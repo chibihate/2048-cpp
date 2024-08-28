@@ -18,9 +18,9 @@ public:
 
 Engine::Application* Engine::CreateApplication() {
 	Engine::ApplicationConfiguration appConfig;
-	appConfig.Width = 800;
-	appConfig.Height = 800;
-	appConfig.Title = "Engine Alpha ver";
+	appConfig.Width = 400;
+	appConfig.Height = 400;
+	appConfig.Title = "2048";
 	appConfig.WindowSpec = Engine::EWindowPlatformSpec::GLFW;
 
 	return new Game(appConfig);

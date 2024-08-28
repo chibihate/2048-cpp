@@ -1,6 +1,5 @@
 #include "Logger.h"
 
-#include <spdlog/spdlog.h>
 #include <spdlog/common.h>
 
 namespace Engine {
