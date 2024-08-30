@@ -1,14 +1,14 @@
 #include "Application.h"
 
 int main() {
-	Engine::Application* application = Engine::CreateApplication();
+    Engine::Application* application = Engine::CreateApplication();
 
-	if (application->Init()) {
-		application->Run();
-	}
+    if (application->Init()) {
+        application->Run();
+    }
 
-	application->Shutdown();
-	delete application;
+    application->Shutdown();
+    delete application;
 
-	return 0;
+    return 0;
 }

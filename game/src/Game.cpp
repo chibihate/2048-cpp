@@ -4,24 +4,23 @@
 
 class Game : public Engine::Application {
 public:
-	Game(const Engine::ApplicationConfiguration& config) : Engine::Application(config) {
-	}
+    Game(const Engine::ApplicationConfiguration& config) : Engine::Application(config) {
+    }
 
-	virtual void OnInitClient() override {
-		LOG_INFO("Game is init");
-	}
+    virtual void OnInitClient() override {
+        LOG_INFO("Game is init");
+    }
 
-	virtual void OnShutdownClient() override {
-		LOG_INFO("Game is shutdown");
-	}
+    virtual void OnShutdownClient() override {
+        LOG_INFO("Game is shutdown");
+    }
 };
 
 Engine::Application* Engine::CreateApplication() {
-	Engine::ApplicationConfiguration appConfig;
-	appConfig.Width = 400;
-	appConfig.Height = 400;
-	appConfig.Title = "2048";
-	appConfig.WindowSpec = Engine::EWindowPlatformSpec::GLFW;
+    Engine::ApplicationConfiguration appConfig;
+    appConfig.width = 400;
+    appConfig.height = 400;
+    appConfig.title = "2048";
 
-	return new Game(appConfig);
+    return new Game(appConfig);
 }

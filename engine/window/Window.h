@@ -3,35 +3,26 @@
 class GLFWwindow;
 
 namespace Engine {
-	enum class EWindowPlatformSpec {
-		GLFW,
-		SDL,
-		None
-	};
+    struct WindowData
+    {
+        int keyCode;
+    };
 
-	class NativeWindow {
-	public:
-		virtual ~NativeWindow() = default;
-		virtual bool Init(const struct ApplicationConfiguration&) = 0;
-		virtual void Shutdown() = 0;
-		virtual void Swapbuffers() = 0;
-		virtual void PollsEvent() = 0;
-		virtual bool ShouldClose() = 0;
-	protected:
-		NativeWindow() = default;
-		NativeWindow(NativeWindow&) = default;
-	};
+    class Window {
+    public:
+        Window();
+        virtual ~Window();
+        virtual bool Init(const struct ApplicationConfiguration&);
+        virtual void Shutdown();
+        virtual void Swapbuffers();
+        virtual void PollsEvent();
+        virtual bool ShouldClose();
+        virtual void UpdateScreen();
 
-	class GLFWPlatformWindow : public NativeWindow {
-	public:
-		GLFWPlatformWindow();
-		~GLFWPlatformWindow();
-		virtual bool Init(const struct ApplicationConfiguration&) override;
-		virtual void Shutdown() override;
-		virtual void Swapbuffers() override;
-		virtual void PollsEvent() override;
-		virtual bool ShouldClose() override;
-	private:
-		GLFWwindow* mWindow;
-	};
+    protected:
+        Window(Window&) = default;
+    private:
+        GLFWwindow* windowGL;
+        WindowData windowData;
+    };
 }

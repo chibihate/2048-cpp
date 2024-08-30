@@ -1,38 +1,39 @@
-#include "Application.h"
 #include <iostream>
-
 #include "logger/Logger.h"
+#include "Application.h"
 
 namespace Engine {
-	Application::Application(const ApplicationConfiguration& config) : mConfig(config) {
-		mNativeWindow.reset(WindowPlatform::Create(config.WindowSpec));
+    Application::Application(const ApplicationConfiguration& _config)
+        : config(_config)
+    {
+        window.reset(new Window());
     }
 
-	bool Application::Init() {
-		Logger::Init();
+    bool Application::Init() {
+        Logger::Init();
 
-		if (!mNativeWindow->Init(mConfig)) {
-			return false;
-		}
+        if (!window->Init(config)) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	void Application::Run() {
-		CORE_LOG_INFO("App is running: ({0}, {1}, {2})", mConfig.Width, mConfig.Height, mConfig.Title);
+    void Application::Run() {
+        CORE_LOG_INFO("App is running: ({0}, {1}, {2})", config.width, config.height, config.title);
 
-		OnInitClient();
+        OnInitClient();
 
-		while (!mNativeWindow->ShouldClose()) {
-			mNativeWindow->Swapbuffers();
+        while (!window->ShouldClose()) {
+            window->UpdateScreen();
+            window->Swapbuffers();
+            window->PollsEvent();
+        }
 
-			mNativeWindow->PollsEvent();
-		}
+        OnShutdownClient();
+    }
 
-		OnShutdownClient();
-	}
-
-	void Application::Shutdown() {
-		mNativeWindow->Shutdown();
-	}
+    void Application::Shutdown() {
+        window->Shutdown();
+    }
 }
