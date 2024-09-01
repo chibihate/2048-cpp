@@ -1,4 +1,4 @@
-project(Engine VERSION 0.1)
+project(Game VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -14,9 +14,7 @@ set(IMGUI_SRC
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
-add_library(${PROJECT_NAME} STATIC ${SRC_FILES} ${IMGUI_SRC})
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC DYNAMIC_LIB=0 DYNAMIC_BUILD=0)
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${IMGUI_SRC})
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}
