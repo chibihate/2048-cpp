@@ -25,9 +25,9 @@ namespace Engine {
         OnInitClient();
 
         while (!window->ShouldClose()) {
+            window->PollsEvent();
             window->UpdateScreen();
             window->Swapbuffers();
-            window->PollsEvent();
         }
 
         OnShutdownClient();
