@@ -3,9 +3,15 @@
 #include <memory>
 #include "Window.h"
 
+enum EWindow {
+    CLIENT,
+    SERVER
+};
+
 struct ApplicationConfiguration {
     int width, height;
     const char* title;
+    EWindow window;
 };
 
 class Application {
@@ -18,8 +24,8 @@ protected:
     Application() = default;
     Application(const ApplicationConfiguration&);
 private:
-    ApplicationConfiguration config;
-    std::unique_ptr<Window> window;
+    ApplicationConfiguration _config;
+    std::unique_ptr<Window> _window;
 };
 
-extern Application* CreateApplication();
+// extern Application* CreateApplication();

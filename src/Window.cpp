@@ -12,7 +12,6 @@
 
 Window::Window()
 : windowGL(nullptr)
-, windowData()
 {
 }
 
@@ -44,41 +43,13 @@ bool Window::Init(const ApplicationConfiguration& config) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-    /* imgui:  Setup Platform/Renderer backends */
-    ImGui_ImplGlfw_InitForOpenGL(windowGL, true);
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(windowGL, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init();
-
-    // glfwSetWindowUserPointer(windowGL, &windowData);
-
-    // glfwSetKeyCallback(windowGL, [](GLFWwindow* window, int keyCode, int scanCode, int action, int mods) {
-    //     WindowData* data = (WindowData*)glfwGetWindowUserPointer(window);
-
-    //     if (action == GLFW_PRESS)
-    //     {
-    //         switch (keyCode)
-    //         {
-    //         case GLFW_KEY_UP:
-    //             CORE_LOG_INFO("Up is pressed");
-    //             break;
-    //         case GLFW_KEY_DOWN:
-    //             CORE_LOG_INFO("Down is pressed");
-    //             break;
-    //         case GLFW_KEY_LEFT:
-    //             CORE_LOG_INFO("Left is pressed");
-    //             break;
-    //         case GLFW_KEY_RIGHT:
-    //             CORE_LOG_INFO("Right is pressed");
-    //             break;
-    //         default:
-    //             break;
-    //         }
-    //         data->keyCode = keyCode;
-    //     }
-    //     });
 
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
         LOG_CRITICAL("Glad loaded failed");
@@ -91,8 +62,7 @@ bool Window::Init(const ApplicationConfiguration& config) {
 }
 
 void Window::Shutdown() {
-    /*** Finalize ***/
-    /* imgui: cleanup */
+    LOG_INFO("Window closed");
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -100,40 +70,17 @@ void Window::Shutdown() {
     glfwTerminate();
 }
 
-void Window::UpdateScreen() {
-    // switch (windowData.keyCode)
-    // {
-    // case GLFW_KEY_UP:
-    //     glClearColor(1.0f, 0.3f, .8f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
-    //     break;
-    // case GLFW_KEY_DOWN:
-    //     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
-    //     break;
-    // case GLFW_KEY_LEFT:
-    //     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
-    //     break;
-    // case GLFW_KEY_RIGHT:
-    //     glClearColor(1.0f, 0.5f, .3f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
-    //     break;
-    // default:
-    //     break;
-    // }
-
+void Window::DearImGUI() {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow(); // Show demo window! :)
 
-    /* Clear the screen */
-    glClear(GL_COLOR_BUFFER_BIT);
+    HandleScreen();
 
-    /* imgui:  Rendering */
+    // Rendering
     ImGui::Render();
+    glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
@@ -147,4 +94,143 @@ void Window::PollsEvent() {
 
 bool Window::ShouldClose() {
     return glfwWindowShouldClose(windowGL);
+}
+
+void WindowServer::InitGRPC()
+{
+    LOG_INFO("Init gRPC server");
+    _builder.AddListeningPort("0.0.0.0:9999", grpc::InsecureServerCredentials());
+    _builder.RegisterService(&_scoreServer);
+    _server = _builder.BuildAndStart();
+}
+
+void WindowServer::HandleScreen()
+{
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoTitleBar;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoResize;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::Begin("##2048", NULL, window_flags);
+
+    if (!_scoreServer.GetScore().empty())
+    {
+        auto memberMap = _scoreServer.GetScore();
+        // Create a vector of pairs to store the map's elements
+        std::vector<std::pair<std::string, int>> memberVec(memberMap.begin(), memberMap.end());
+
+        // Sort the vector by value in descending order
+        std::sort(memberVec.begin(), memberVec.end(),
+            [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
+                return a.second > b.second; // Sort by value (second), descending order
+        });
+
+        if (ImGui::BeginTable("Rank",2))
+        {
+            ImGui::TableSetupColumn("Name");
+            ImGui::TableSetupColumn("Score");
+            ImGui::TableHeadersRow();
+            for (const auto& member: memberVec)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                auto name = member.first.c_str();
+                ImGui::Text(name);
+                ImGui::TableNextColumn();
+                auto score = std::to_string(member.second).c_str();
+                ImGui::Text(score);
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    {
+        glfwSetWindowShouldClose(windowGL, true);
+    }
+    ImGui::End();
+}
+
+WindowClient::WindowClient()
+    : _client(grpc::CreateChannel("0.0.0.0:9999", grpc::InsecureChannelCredentials()))
+    , _screenPage()
+    , _username()
+    , _password()
+{
+}
+
+void WindowClient::InitGRPC()
+{
+}
+
+void WindowClient::HandleScreen()
+{
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoTitleBar;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoResize;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::Begin("##2048", NULL, window_flags);
+
+    switch (_screenPage)
+    {
+    case LOGIN:
+        LoginPage();
+        break;
+    case GAME:
+        GamePage();
+        break;
+    default:
+        break;
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    {
+        glfwSetWindowShouldClose(windowGL, true);
+    }
+    ImGui::End();
+}
+
+void WindowClient::LoginPage()
+{
+    auto windowWidth = ImGui::GetWindowSize().x;
+    auto windowHeight = ImGui::GetWindowSize().y;
+    const uint32_t TEXT_WIDTH = 200;
+
+    ImGui::SetNextItemWidth(TEXT_WIDTH);
+    ImGui::SetCursorPosX((windowWidth - TEXT_WIDTH) * 0.5f);
+    ImGui::SetCursorPosY((windowHeight - 100) * 0.5f);
+    ImGui::InputTextWithHint("##username", "Username", _username, IM_ARRAYSIZE(_username));
+
+    ImGui::SetNextItemWidth(TEXT_WIDTH);
+    ImGui::SetCursorPosX((windowWidth - TEXT_WIDTH) * 0.5f);
+    ImGui::InputTextWithHint("##password", "Password", _password, IM_ARRAYSIZE(_password), ImGuiInputTextFlags_Password);
+
+    ImVec2 button_size = ImVec2(50, 20);
+    ImGui::SetCursorPosX((windowWidth - 50) * 0.5f);
+    if (ImGui::Button("Login", button_size))
+    {
+        // if ((strcmp(username, "1")==0) && (strcmp(password, "1")==0))
+        // {
+            LOG_INFO("Success");
+            _screenPage = GAME;
+        // }
+    }
+}
+
+void WindowClient::GamePage()
+{
+    static int counter = 0;
+    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)
+        || ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)
+        || ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)
+        || ImGui::IsKeyPressed(ImGuiKey_DownArrow, false))
+    {
+        counter = _client.UpdateScore(_username, _password,ImGuiKey_LeftArrow);
+    }
+    ImGui::Text("counter = %d", counter);
 }
