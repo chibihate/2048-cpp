@@ -77,6 +77,7 @@ private:
     void GenerateRandom();
     void ShiftTile(Tile& first, Tile& second, Tile& third, Tile& forth);
     void MergeTile(Tile& first, Tile& second, Tile& third, Tile& forth);
+    bool IsGameOver();
 
     ScoreClient _client;
     Page _screenPage;

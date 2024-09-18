@@ -230,8 +230,8 @@ void WindowClient::LoginPage()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, BACKGROUND_COLOR);
     ImGui::Begin("##Login", NULL, _defaultWindowFlags);
 
-    auto windowWidth = ImGui::GetWindowSize().x;
-    auto windowHeight = ImGui::GetWindowSize().y;
+    float windowWidth = ImGui::GetWindowSize().x;
+    float windowHeight = ImGui::GetWindowSize().y;
     const uint32_t TEXT_WIDTH = 200;
 
     ImGui::SetNextItemWidth(TEXT_WIDTH);
@@ -349,6 +349,31 @@ void WindowClient::MergeTile(Tile& first, Tile& second, Tile& third, Tile& forth
     forth.SetValue(tiles[3]);
 }
 
+bool WindowClient::IsGameOver()
+{
+    bool isGameOver = true;
+    for (int i = 0; i < 4; ++i)
+    {
+        if (isGameOver)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                if (_tiles[i][j].GetValue() == _tiles[i][j+1].GetValue())
+                {
+                    isGameOver = false;
+                    break;
+                }
+                if (_tiles[j][i].GetValue() == _tiles[j+1][i].GetValue())
+                {
+                    isGameOver = false;
+                    break;
+                }
+            }
+        }
+    }
+    return isGameOver;
+}
+
 void WindowClient::GamePage()
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -356,7 +381,11 @@ void WindowClient::GamePage()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, BACKGROUND_COLOR);
     ImGui::Begin("##Game", NULL, _defaultWindowFlags);
     ImGui::SetWindowFontScale(2.0f);
-    
+    uint16_t totalScore = 0;
+    uint16_t countOfTile = 0;
+    static bool triggerNotification = false;
+    static uint32_t totalScoreInHistory = 0;
+
     if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false))
     {
         for (int i = 0; i < 4; ++i)
@@ -406,8 +435,6 @@ void WindowClient::GamePage()
         GenerateRandom();
     }
 
-    uint16_t totalScore = 0;
-    uint16_t countOfTile = 0;
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     for (auto& row : _tiles) {
         for (auto& tile : row) {
@@ -420,6 +447,35 @@ void WindowClient::GamePage()
         }
     }
     DrawGrid(drawList);
+
+    if (countOfTile == 16 && IsGameOver())
+    {
+        triggerNotification = true;
+    }
+
+    if (triggerNotification) {
+        ImGui::OpenPopup("##GameOver");
+        float buttonWidth = ImGui::CalcTextSize("Game over").x;
+        float buttonHeight = ImGui::CalcTextSize("Game over").y;
+        ImGui::SetNextWindowPos(ImVec2((GAME_WIDTH - buttonWidth) * 0.5f, (GAME_HEIGHT - buttonHeight*2) * 0.5f));
+        if (ImGui::BeginPopup("##GameOver")) {
+            ImGui::Text("Game over");
+            float windowWidth = ImGui::GetWindowSize().x;
+            buttonWidth = ImGui::CalcTextSize("OK").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+            ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
+            if (ImGui::Button("OK")) {
+                totalScoreInHistory += totalScore;
+                triggerNotification = false;
+                for (auto& row : _tiles) {
+                    for (auto& tile : row) {
+                        tile.SetValue(0);
+                    }
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
     ImGui::End();
     ImGui::PopStyleColor();
 
@@ -428,21 +484,22 @@ void WindowClient::GamePage()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, BACKGROUND_COLOR);
     ImGui::Begin("##Title game", NULL, _defaultWindowFlags);
     ImGui::Text("Score: %d", totalScore);
+    ImGui::Text("Total score: %d", totalScoreInHistory);
     ImGui::End();
     ImGui::PopStyleColor();
 }
 
 Tile::Tile()
-: _value(0)
-, _x(0)
-, _y(0)
+    : _value(0)
+    , _x(0)
+    , _y(0)
 {
 }
 
 Tile::Tile(uint16_t row, uint16_t col)
-: _value(0)
-, _x(col*RECT_WIDTH)
-, _y(row*RECT_HEIGHT)
+    : _value(0)
+    , _x(col*RECT_WIDTH)
+    , _y(row*RECT_HEIGHT)
 {
 }
 
@@ -454,6 +511,7 @@ const ImU32 Tile::GetColor() const
     }
     ImU32 color;
     int32_t colorIndex = int(log2(double(_value))) - 1;
+    colorIndex = colorIndex > 10 ? 10 : colorIndex;
     color = COLORS[colorIndex];
     return color;
 }
