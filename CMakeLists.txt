@@ -34,7 +34,11 @@ set(SRC_CORE
     src/Application.cpp
     src/Logger.cpp
     src/Window.cpp
-    src/Service.cpp
+    src/WindowServer.cpp
+    src/WindowClient.cpp
+    src/ServiceServer.cpp
+    src/ServiceClient.cpp
+    src/Tile.cpp
 )
 set(IMGUI_SRC
     external/imgui/imgui.cpp
@@ -59,10 +63,10 @@ target_include_directories(Core PUBLIC
 )
 target_link_libraries(Core PUBLIC spdlog glfw gRPC::grpc++)
 
-add_executable(Client src/Client.cpp)
+add_executable(Client src/ApplicationClient.cpp)
 target_include_directories(Client PUBLIC src)
 target_link_libraries(Client PUBLIC Core)
 
-add_executable(Server src/Server.cpp)
+add_executable(Server src/ApplicationServer.cpp)
 target_include_directories(Server PUBLIC src)
 target_link_libraries(Server PUBLIC Core)

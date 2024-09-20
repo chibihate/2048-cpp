@@ -8,8 +8,11 @@ message ScoreRequest {
   string name = 2;
   string api = 1;
   int32 key = 3;
+  bool reset = 4;
 }
 
 message ScoreReply {
   int32 score = 1;
+  int32 total_score = 2;
+  repeated int32 values = 3;
 }

@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "ApplicationServer.h"
 
 Application* CreateApplication() {
     ApplicationConfiguration appConfig;

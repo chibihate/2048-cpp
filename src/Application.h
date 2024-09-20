@@ -2,6 +2,8 @@
 
 #include <memory>
 #include "Window.h"
+#include "WindowServer.h"
+#include "WindowClient.h"
 
 enum EWindow {
     CLIENT,
