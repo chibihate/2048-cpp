@@ -191,6 +191,11 @@ bool ScoreServer::IsValidUser(sqlite3* db, std::string username, std::string pas
         }
         if (isSuccess == SQLITE_OK)
         {
+            if (auto search = _mapNameUserInfo.find(request->username()); search != _mapNameUserInfo.end())
+            {
+                ResetTiles(_mapNameUserInfo[request->username()].tiles);
+                _mapNameUserInfo[request->username()].score = 0;
+            }
             response->set_valid(true);
             response->set_name(request->username());
             response->set_api(api);
@@ -209,14 +214,14 @@ bool ScoreServer::IsValidUser(sqlite3* db, std::string username, std::string pas
     return grpc::Status::OK;
 }
 
-bool ScoreServer::ValidRequest(sqlite3* db, std::string name, std::string api)
+bool ScoreServer::IsValidRequest(sqlite3* db, std::string name, std::string api)
 {
     const char* sqlSelect = "SELECT Api FROM User WHERE Name = ?;";
     sqlite3_stmt* stmt;
     int rc = sqlite3_prepare_v2(db, sqlSelect, -1, &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        std::cerr << "ValidRequest - Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        std::cerr << "IsValidRequest - Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
         return false;
     }
 
@@ -253,7 +258,7 @@ bool ScoreServer::ValidRequest(sqlite3* db, std::string name, std::string api)
     if (isSuccess) {
         std::cerr << "UpdateScore - Error opening DB: " << sqlite3_errmsg(db) << std::endl;
     }
-    if (ValidRequest(db, request->name(), request->api()))
+    if (IsValidRequest(db, request->name(), request->api()))
     {
         int32_t score = 0;
         if (auto search = _mapNameUserInfo.find(request->name()); search != _mapNameUserInfo.end())
