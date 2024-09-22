@@ -1,18 +1,31 @@
 syntax = "proto3";
 
 service Score {
-  rpc UpdateScore (ScoreRequest) returns (ScoreReply) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc UpdateScore (ScoreRequest) returns (ScoreResponse) {}
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    bool valid = 1;
+    string name = 2;
+    string api = 3;
+    int32 total_score = 4;
 }
 
 message ScoreRequest {
-  string name = 2;
-  string api = 1;
-  int32 key = 3;
-  bool reset = 4;
+    string name = 1;
+    string api = 2;
+    int32 key = 3;
+    bool reset = 4;
 }
 
-message ScoreReply {
-  int32 score = 1;
-  int32 total_score = 2;
-  repeated int32 values = 3;
+message ScoreResponse {
+    int32 score = 1;
+    int32 total_score = 2;
+    repeated int32 values = 3;
 }

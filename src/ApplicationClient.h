@@ -2,8 +2,9 @@
 
 class Client : public Application {
 public:
-    Client(const ApplicationConfiguration& config) 
-    : Application(config) 
-    {}
+    Client(const ApplicationConfiguration& config)
+    : Application(config)
+    {
+    }
 
 };

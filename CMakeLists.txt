@@ -17,6 +17,7 @@ add_subdirectory(external)
 
 find_package(Protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
+find_package (SQLite3 REQUIRED)
 
 add_library(protolib proto/score.proto)
 target_link_libraries(protolib gRPC::grpc++)
@@ -61,7 +62,7 @@ target_include_directories(Core PUBLIC
 	external/imgui
 	external/imgui/backends
 )
-target_link_libraries(Core PUBLIC spdlog glfw gRPC::grpc++)
+target_link_libraries(Core PUBLIC spdlog glfw gRPC::grpc++ SQLite::SQLite3)
 
 add_executable(Client src/ApplicationClient.cpp)
 target_include_directories(Client PUBLIC src)

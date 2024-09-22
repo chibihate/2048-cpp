@@ -42,7 +42,7 @@ void Application::Run() {
         _window->Swapbuffers();
         auto frameEnd = std::chrono::high_resolution_clock::now();
         auto frameDuration = frameEnd - frameStart;
-    
+
         while (frameDuration < TARGET_FRAMETIME)
         {
             frameEnd = std::chrono::high_resolution_clock::now();

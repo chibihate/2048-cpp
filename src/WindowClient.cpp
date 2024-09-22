@@ -4,8 +4,10 @@
 WindowClient::WindowClient()
     : _client(grpc::CreateChannel("0.0.0.0:9999", grpc::InsecureChannelCredentials()))
     , _screenPage()
-    , _username("chibihate")
-    , _password("chibihate")
+    , _username()
+    , _password()
+    , _api()
+    , _totalScore(0)
     , _defaultWindowFlags(0)
 {
     for (int row = 0; row < ROWS; ++row)
@@ -26,7 +28,6 @@ void WindowClient::InitGRPC()
 
 void WindowClient::HandleScreen()
 {
-    _screenPage = GAME;
     switch (_screenPage)
     {
     case LOGIN:
@@ -42,6 +43,7 @@ void WindowClient::HandleScreen()
 
 void WindowClient::LoginPage()
 {
+    static LoginInfo loginInfo;
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -65,11 +67,18 @@ void WindowClient::LoginPage()
     ImGui::SetCursorPosX((windowWidth - 50) * 0.5f);
     if (ImGui::Button("Login", button_size))
     {
-        // if ((strcmp(username, "1")==0) && (strcmp(password, "1")==0))
-        // {
-            LOG_INFO("Success");
+        loginInfo = _client.LoginGame(_username, _password);
+        if (loginInfo.valid)
+        {
+            _api = loginInfo.api;
+            _totalScore = loginInfo.totalScore;
             _screenPage = GAME;
-        // }
+        }
+    }
+    if (!loginInfo.valid)
+    {
+        ImGui::SetCursorPosX((windowWidth - TEXT_WIDTH) * 0.5f);
+        ImGui::Text("Password is incorrect");
     }
 
     ImGui::End();
@@ -127,29 +136,29 @@ void WindowClient::GamePage()
     static bool triggerNotification = false;
     static bool reset = false;
     static int32_t score = 0;
-    static int32_t totalScore = 0;
-    static ScoreInfo scoreInfo;
+    static int32_t totalScore = _totalScore;
+    static ScoreInfo scoreInfo(_totalScore);
 
     if (!triggerNotification)
     {
         if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false))
         {
-            scoreInfo = _client.UpdateScore(_username, _password, ImGuiKey_LeftArrow, reset);
+            scoreInfo = _client.UpdateScore(_username, _api, ImGuiKey_LeftArrow, reset);
             reset = false;
         }
         if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false))
         {
-            scoreInfo = _client.UpdateScore(_username, _password, ImGuiKey_RightArrow, reset);
+            scoreInfo = _client.UpdateScore(_username, _api, ImGuiKey_RightArrow, reset);
             reset = false;
         }
         if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, false))
         {
-            scoreInfo = _client.UpdateScore(_username, _password, ImGuiKey_UpArrow, reset);
+            scoreInfo = _client.UpdateScore(_username, _api, ImGuiKey_UpArrow, reset);
             reset = false;
         }
         if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, false))
         {
-            scoreInfo = _client.UpdateScore(_username, _password, ImGuiKey_DownArrow, reset);
+            scoreInfo = _client.UpdateScore(_username, _api, ImGuiKey_DownArrow, reset);
             reset = false;
         }
     }

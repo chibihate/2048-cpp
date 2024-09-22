@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 
 Window::Window()
-: windowGL(nullptr)
+    : windowGL(nullptr)
 {
 }
 

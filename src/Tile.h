@@ -41,7 +41,7 @@ public:
     const uint16_t GetX() const;
     const uint16_t GetY() const;
 
-private:    
+private:
     uint16_t _value;
     uint16_t _x;
     uint16_t _y;

@@ -25,6 +25,8 @@ private:
     ScoreClient _client;
     Page _screenPage;
     char _username[64], _password[64];
+    std::string _api;
+    int32_t _totalScore;
     ImGuiWindowFlags _defaultWindowFlags;
 
     std::array<std::array<Tile, COLS>, ROWS> _tiles;
