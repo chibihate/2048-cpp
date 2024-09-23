@@ -76,3 +76,4 @@ Open another terminal to run `Client`, put `username` and `password` for the fir
 
 Although all data is recorded in database, and this is a demo, `Server` only show `username` active when `Server` start.
 
+![2048](2048.png "2048")
